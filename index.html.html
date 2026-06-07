@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIVA Schedule Builder</title>
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #1a6fd4;
+  --surface: #f8f7f4;
+  --card: #ffffff;
+  --border: #e2e0d8;
+  --text: #1a1a18;
+  --muted: #6b6960;
+  --radius: 10px;
+  --ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+body { font-family: var(--ui); background: var(--surface); color: var(--text); }
+header {
+  background: #1a1a18; color: #fff; padding: 1rem 1.5rem;
+  display: flex; align-items: center; gap: 12px;
+}
+header h1 { font-size: 18px; font-weight: 600; }
+header span { font-size: 12px; color: #888; margin-left: auto; }
+.main { padding: 1.25rem; max-width: 800px; margin: 0 auto; }
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);
+}
+.card-title {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); display: flex; align-items: center; gap: 6px;
+}
+label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+input[type=text], input[type=date], input[type=time], select, textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border);
+  border-radius: 6px; font-size: 14px; font-family: var(--ui);
+  background: #fff; color: var(--text); outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--blue); }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+@media(max-width:600px) { .g3,.g4 { grid-template-columns: 1fr 1fr; } }
+@media(max-width:400px) { .g2,.g3,.g4 { grid-template-columns: 1fr; } }
+.fg { margin-bottom: 12px; }
+.talent-block {
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem; margin-bottom: 0.75rem; background: #fafaf8;
+}
+.talent-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: 1px solid transparent; font-family: var(--ui); transition: all 0.15s;
+}
+.btn-dark { background: #1a1a18; color: #fff; border-color: #1a1a18; }
+.btn-dark:hover { background: #333; }
+.btn-outline { background: transparent; border-color: var(--border); color: var(--text); }
+.btn-outline:hover { background: var(--surface); }
+.btn-red { background: transparent; border-color: #fca5a5; color: #b91c1c; }
+.btn-red:hover { background: #fef2f2; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-add {
+  width: 100%; padding: 10px; background: #edf4fd; border: 1px dashed var(--blue);
+  color: var(--blue); border-radius: 6px; font-size: 13px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 6px; font-family: var(--ui); margin-top: 6px;
+}
+.btn-add:hover { background: #dbeafe; }
+.btn-addday {
+  width: 100%; padding: 12px; background: transparent; border: 1px dashed var(--border);
+  border-radius: var(--radius); font-size: 13px; color: var(--muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: var(--ui); margin-bottom: 1rem; transition: all 0.15s;
+}
+.btn-addday:hover { border-color: var(--blue); color: var(--blue); background: #edf4fd; }
+.slot-tag {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; padding: 3px 10px; border-radius: 10px;
+}
+.slot-am { background: #dbeafe; color: #1e40af; }
+.slot-pm { background: #fef3c7; color: #92400e; }
+.slot-header { display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.nosession-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; margin-left: auto; }
+.sep { border: none; border-top: 1px dashed var(--border); margin: 1rem 0; }
+.tog { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+.tog input { opacity: 0; width: 0; height: 0; }
+.tog-slider { position: absolute; inset: 0; background: #ccc; border-radius: 20px; cursor: pointer; transition: background 0.2s; }
+.tog-slider:before { content:''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; }
+.tog input:checked + .tog-slider { background: var(--blue); }
+.tog input:checked + .tog-slider:before { transform: translateX(16px); }
+.tog-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.tog-lbl { font-size: 13px; }
+.status-sel {
+  font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+  cursor: pointer; border: none; outline: none; font-family: var(--ui);
+}
+.s-confirmed { background: #d1fae5; color: #065f46; }
+.s-onhold    { background: #fef3c7; color: #92400e; }
+.s-pending   { background: #dbeafe; color: #1e40af; }
+.s-cancelled { background: #f3f4f6; color: #6b7280; }
+.out-area { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 1rem; }
+.out-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.out-tab {
+  padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+  border: none; background: transparent; color: var(--muted);
+  border-bottom: 2px solid transparent; margin-bottom: -1px; font-family: var(--ui);
+}
+.out-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+.out-panel { padding: 1.25rem; display: none; }
+.out-panel.active { display: block; }
+.email-preview {
+  font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8;
+  padding: 1rem; background: #fff; border: 1px solid var(--border); border-radius: 6px; min-height: 80px;
+}
+.copy-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.toast { font-size: 12px; color: #16a34a; font-weight: 600; opacity: 0; transition: opacity 0.3s; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<header>
+  <i class="ti ti-calendar-event" style="font-size:20px;color:#5b9bd5;" aria-hidden="true"></i>
+  <h1>VIVA Schedule Builder</h1>
+  <span>Faith Tech Production</span>
+</header>
+
+<div class="main">
+  <div id="days-wrap"></div>
+
+  <button class="btn-addday" onclick="addDay()">
+    <i class="ti ti-plus" aria-hidden="true"></i> Add another day
+  </button>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem;padding:1rem;background:#fff;border:1px solid var(--border);border-radius:var(--radius);align-items:center;">
+    <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-right:4px;">Save / Load</span>
+    <button class="btn btn-outline" onclick="saveSchedule()">
+      <i class="ti ti-device-floppy" aria-hidden="true"></i> Save Schedule
+    </button>
+    <label class="btn btn-outline" style="cursor:pointer;">
+      <i class="ti ti-upload" aria-hidden="true"></i> Load Schedule
+      <input type="file" id="load-file" accept=".json" onchange="loadSchedule(event)" style="display:none;">
+    </label>
+    <span style="font-size:12px;color:var(--muted);">Save downloads a file. Load restores it exactly.</span>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.5rem;">
+    <button class="btn btn-dark" onclick="generate()">
+      <i class="ti ti-wand" aria-hidden="true"></i> Generate Schedule
+    </button>
+    <button class="btn btn-outline" onclick="startOver()">
+      <i class="ti ti-refresh" aria-hidden="true"></i> Start Over
+    </button>
+  </div>
+
+  <div class="out-area" id="out-area" style="display:none;">
+    <div class="out-tabs">
+      <button class="out-tab active" onclick="switchTab('email',this)">
+        <i class="ti ti-mail" style="font-size:13px;" aria-hidden="true"></i> Email Copy
+      </button>
+      <button class="out-tab" onclick="switchTab('image',this)">
+        <i class="ti ti-photo" style="font-size:13px;" aria-hidden="true"></i> Image for iMessage
+      </button>
+      <button class="out-tab" onclick="switchTab('text',this)">
+        <i class="ti ti-message" style="font-size:13px;" aria-hidden="true"></i> Plain Text
+      </button>
+      <button class="out-tab" onclick="switchTab('outlook',this)">
+        <i class="ti ti-mail-forward" style="font-size:13px;" aria-hidden="true"></i> Open in Outlook
+      </button>
+    </div>
+    <div class="out-panel active" id="panel-email">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Copy and paste directly into Outlook. Formatting is preserved.</p>
+      <div class="email-preview" id="email-preview"></div>
+      <div class="copy-row">
+        <button class="btn btn-dark" onclick="copyEmail()"><i class="ti ti-copy" aria-hidden="true"></i> Copy Email Body</button>
+        <span class="toast" id="toast-email"><i class="ti ti-check"></i> Copied!</span>
+      </div>
+    </div>
+    <div class="out-panel" id="panel-image">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Download and drop straight into iMessage — no screenshotting needed.</p>
+      <canvas id="sched-canvas" style="max-width:100%;border:1px solid var(--border);border-radius:6px;display:none;"></canvas>
+      <div class="copy-row" style="margin-top:12px;">
+        <button class="btn btn-dark" onclick="downloadImg()"><i class="ti ti-download" aria-hidden="true"></i> Download Image</button>
+      </div>
+    </div>
+    <div class="out-panel" id="panel-text">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">Plain text backup.</p>
+      <textarea id="plain-out" style="width:100%;min-height:200px;font-family:monospace;font-size:13px;resize:vertical;" readonly></textarea>
+      <div class="copy-row">
+        <button class="btn btn-dark" onclick="copyPlain()"><i class="ti ti-copy" aria-hidden="true"></i> Copy Text</button>
+        <span class="toast" id="toast-plain"><i class="ti ti-check"></i> Copied!</span>
+      </div>
+    </div>
+    <div class="out-panel" id="panel-outlook">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:6px;">Downloads a <strong>.eml</strong> file — double-click it and it opens directly in Outlook with all formatting intact: blue headers, yellow highlights, royal blue notes. Fill in the To field and send.</p>
+      <div style="background:#f0f7ff;border:1px solid #bdd7f5;border-radius:8px;padding:12px;font-size:13px;color:#1a3fa8;margin-bottom:12px;">
+        <i class="ti ti-info-circle" aria-hidden="true"></i> <strong>How to use:</strong> Click Download below → double-click the downloaded .eml file → Outlook opens it as a new draft with full formatting → add recipients → send.
+      </div>
+      <div id="eml-subject-wrap" class="fg">
+        <label>Email Subject Line</label>
+        <input type="text" id="eml-subject" placeholder="e.g. Schedule - Week of May 26th" style="margin-bottom:8px;">
+      </div>
+      <div class="copy-row">
+        <button class="btn btn-dark" onclick="downloadEml()"><i class="ti ti-download" aria-hidden="true"></i> Download .eml File</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var dayIdx = 0;
+var talIdx = 0;
+
+function sel(id) { return document.getElementById(id); }
+
+function addDay() {
+  dayIdx++;
+  var d = dayIdx;
+  var wrap = sel('days-wrap');
+  var div = document.createElement('div');
+  div.className = 'card';
+  div.id = 'day-' + d;
+  div.innerHTML =
+    '<div class="card-header">' +
+      '<div class="card-title"><i class="ti ti-calendar" aria-hidden="true"></i> Day ' + d + '</div>' +
+      '<button class="btn btn-red btn-sm" onclick="removeDay(' + d + ')"><i class="ti ti-trash" aria-hidden="true"></i> Remove Day</button>' +
+    '</div>' +
+    '<div class="g2">' +
+      '<div class="fg"><label>Date</label><input type="date" id="date-' + d + '" onchange="autoLabel(' + d + ')" style="background:#e8f4fd;border-color:#90c8f0;"></div>' +
+      '<div class="fg"><label>Day Label (auto-filled, editable)</label><input type="text" id="dlabel-' + d + '" placeholder="Will fill when you pick a date" style="background:#e8f4fd;border-color:#90c8f0;"></div>' +
+    '</div>' +
+    '<div class="fg"><label style="color:#b5006e;">Day Notes</label><textarea id="dnote-' + d + '" style="width:100%;resize:vertical;min-height:44px;background:#fde8f4;border-color:#f0a0d0;" placeholder="e.g. *Crew call 8AM sharp — Studio A only"></textarea></div>' +
+
+    '<div class="sep"></div>' +
+    '<div class="slot-header">' +
+      '<span class="slot-tag slot-am">Morning Session</span>' +
+      '<label class="nosession-label"><input type="checkbox" id="noam-' + d + '" onchange="toggleSlot(' + d + ',\'am\')"> No morning session</label>' +
+    '</div>' +
+    '<div id="am-talents-' + d + '"></div>' +
+    '<button class="btn-add" id="am-addbtn-' + d + '" onclick="addTalent(' + d + ',\'am\')"><i class="ti ti-plus" aria-hidden="true"></i> Add talent to morning session</button>' +
+
+    '<div class="sep"></div>' +
+    '<div class="fg" style="background:#fffbea;border:1px solid #f5c800;border-radius:8px;padding:10px;">' +
+      '<label style="color:#856404;">Lunch / Dinner</label>' +
+      '<input type="text" id="dlunch-' + d + '" placeholder="e.g. 12PM - 1PM, Provided on set, On your own" style="background:#fffbea;">' +
+    '</div>' +
+
+    '<div class="sep"></div>' +
+    '<div class="slot-header">' +
+      '<span class="slot-tag slot-pm">Afternoon Session</span>' +
+      '<label class="nosession-label"><input type="checkbox" id="nopm-' + d + '" onchange="toggleSlot(' + d + ',\'pm\')"> No afternoon session</label>' +
+    '</div>' +
+    '<div id="pm-talents-' + d + '"></div>' +
+    '<button class="btn-add" id="pm-addbtn-' + d + '" onclick="addTalent(' + d + ',\'pm\')"><i class="ti ti-plus" aria-hidden="true"></i> Add talent to afternoon session</button>';
+
+  wrap.appendChild(div);
+}
+
+function removeDay(d) {
+  var el = sel('day-' + d);
+  if (el) el.remove();
+}
+
+function toggleSlot(d, slot) {
+  var cb = sel('no' + slot + '-' + d);
+  var talWrap = sel(slot + '-talents-' + d);
+  var addBtn = sel(slot + '-addbtn-' + d);
+  var off = cb.checked;
+  talWrap.style.opacity = off ? '0.3' : '1';
+  talWrap.style.pointerEvents = off ? 'none' : '';
+  addBtn.style.opacity = off ? '0.3' : '1';
+  addBtn.style.pointerEvents = off ? 'none' : '';
+}
+
+function addTalent(d, slot, data) {
+  talIdx++;
+  var t = talIdx;
+  var container = sel(slot + '-talents-' + d);
+  var div = document.createElement('div');
+  div.className = 'talent-block';
+  div.id = 'talent-' + t;
+
+  // Build status select separately to avoid template issues
+  var statusSel = document.createElement('select');
+  statusSel.className = 'status-sel s-confirmed';
+  statusSel.id = 'tstatus-' + t;
+  statusSel.onchange = function() { updateStatus(this); };
+  var statuses = [
+    ['CONFIRMED', '✓ Confirmed'],
+    ['ON_HOLD',   '⏸ On Hold'],
+    ['PENDING',   '⋯ Pending'],
+    ['CANCELLED', '✕ Cancelled']
+  ];
+  statuses.forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s[0];
+    opt.textContent = s[1];
+    statusSel.appendChild(opt);
+  });
+
+  // Remove button
+  var removeBtn = document.createElement('button');
+  removeBtn.className = 'btn btn-red btn-sm';
+  removeBtn.innerHTML = '<i class="ti ti-x" aria-hidden="true"></i> Remove';
+  removeBtn.onclick = function() { div.remove(); };
+
+  // Header
+  var header = document.createElement('div');
+  header.className = 'talent-header';
+  var headerLeft = document.createElement('div');
+  headerLeft.style.cssText = 'display:flex;align-items:center;gap:8px;';
+  headerLeft.appendChild(statusSel);
+  header.appendChild(headerLeft);
+  header.appendChild(removeBtn);
+  div.appendChild(header);
+
+  // Set status if restoring
+  if (data && data.status) {
+    statusSel.value = data.status;
+    updateStatus(statusSel);
+  }
+
+  // Fields — use a separate container appended via DOM so header isn't wiped
+  var fields = document.createElement('div');
+
+  var d_name      = data ? (data.name || '') : '';
+  var d_roles     = data ? (data.roles || '') : '';
+  var d_crew      = data ? (data.crew || '') : '';
+  var d_arrival   = data ? (data.arrival || '') : '';
+  var d_recStart  = data ? (data.recStart || '') : '';
+  var d_recEnd    = data ? (data.recEnd || '') : '';
+  var d_exit      = data ? (data.exit || '') : '';
+  var d_isNew     = data ? (data.isNew ? 'checked' : '') : '';
+  var d_noInt     = data ? (data.noInt ? 'checked' : '') : '';
+  var d_note      = data ? (data.note || '') : '';
+
+  fields.innerHTML =
+    '<div class="g2">' +
+      '<div class="fg"><label>Talent Name</label><input type="text" id="tname-' + t + '" placeholder="First Last" value="' + d_name.replace(/"/g,'&quot;') + '" style="background:#ffffcc;border-color:#e6c800;font-weight:600;"></div>' +
+      '<div class="fg"><label>Role(s)</label><input type="text" id="troles-' + t + '" placeholder="DEMETRIUS, HABBAKUK" value="' + d_roles.replace(/"/g,'&quot;') + '"></div>' +
+    '</div>' +
+    '<div class="g2">' +
+      '<div class="fg"><label>Crew Arrival</label><input type="time" id="tcrew-' + t + '" value="' + d_crew + '"></div>' +
+      '<div class="fg"><label>Talent Arrival</label><input type="time" id="tarrival-' + t + '" value="' + d_arrival + '"></div>' +
+    '</div>' +
+    '<div class="g4">' +
+      '<div class="fg"><label>Recording Start</label><input type="time" id="trecstart-' + t + '" value="' + d_recStart + '"></div>' +
+      '<div class="fg"><label>Recording End</label><input type="time" id="trecend-' + t + '" value="' + d_recEnd + '"></div>' +
+      '<div class="fg"><label>Exit Interview</label><input type="time" id="texit-' + t + '" value="' + d_exit + '"></div>' +
+    '</div>' +
+    '<div class="g2">' +
+      '<div class="tog-row"><label class="tog"><input type="checkbox" id="tnew-' + t + '" ' + d_isNew + '><span class="tog-slider"></span></label><span class="tog-lbl">New talent (17-min video)</span></div>' +
+      '<div class="tog-row"><label class="tog"><input type="checkbox" id="tnoint-' + t + '" ' + d_noInt + '><span class="tog-slider"></span></label><span class="tog-lbl">No exit interview</span></div>' +
+    '</div>' +
+    '<div class="fg"><label style="color:#1a3fa8;font-weight:700;">Notes / Changes</label><textarea id="tnote-' + t + '" style="width:100%;resize:vertical;min-height:44px;" placeholder="e.g. *Time changed from 2 to 1pm">' + d_note + '</textarea></div>';
+
+  div.appendChild(fields);
+  container.appendChild(div);
+}
+
+function updateStatus(sel) {
+  var map = { CONFIRMED:'s-confirmed', ON_HOLD:'s-onhold', PENDING:'s-pending', CANCELLED:'s-cancelled' };
+  sel.className = 'status-sel ' + (map[sel.value] || 's-confirmed');
+}
+
+// ── Data collection ──────────────────────────────────────
+
+function fmt(t) {
+  if (!t) return '';
+  var parts = t.split(':');
+  var h = parseInt(parts[0]), m = parseInt(parts[1]);
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  var hr = h % 12 || 12;
+  return m === 0 ? hr + ampm : hr + ':' + String(m).padStart(2,'0') + ampm;
+}
+
+function autoLabel(d) {
+  var dateVal = sel('date-' + d) ? sel('date-' + d).value : '';
+  if (!dateVal) return;
+  var dt = new Date(dateVal + 'T12:00:00');
+  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var day = dt.getDate();
+  var suffix = (day===1||day===21||day===31)?'st':(day===2||day===22)?'nd':(day===3||day===23)?'rd':'th';
+  var label = days[dt.getDay()] + ' - ' + months[dt.getMonth()] + ' ' + day + suffix;
+  var labelEl = sel('dlabel-' + d);
+  if (labelEl) labelEl.value = label;
+}
+
+function dayLabel(d) {
+  var labelEl = sel('dlabel-' + d);
+  if (labelEl && labelEl.value.trim()) return labelEl.value.trim();
+  return 'Day ' + d;
+}
+
+function getTalents(slot, d) {
+  var container = sel(slot + '-talents-' + d);
+  if (!container) return [];
+  var results = [];
+  var blocks = container.querySelectorAll('.talent-block');
+  blocks.forEach(function(block) {
+    var id = block.id.replace('talent-','');
+    var statusEl = sel('tstatus-' + id);
+    results.push({
+      name:       sel('tname-' + id) ? sel('tname-' + id).value.trim() : '',
+      roles:      sel('troles-' + id) ? sel('troles-' + id).value.trim() : '',
+      crew:       sel('tcrew-' + id) ? sel('tcrew-' + id).value : '',
+      arrival:    sel('tarrival-' + id) ? sel('tarrival-' + id).value : '',
+      recStart:   sel('trecstart-' + id) ? sel('trecstart-' + id).value : '',
+      recEnd:     sel('trecend-' + id) ? sel('trecend-' + id).value : '',
+      exit:       sel('texit-' + id) ? sel('texit-' + id).value : '',
+      isNew:      sel('tnew-' + id) ? sel('tnew-' + id).checked : false,
+      noInt:      sel('tnoint-' + id) ? sel('tnoint-' + id).checked : false,
+      note:       sel('tnote-' + id) ? sel('tnote-' + id).value.trim() : '',
+      status:     statusEl ? statusEl.value : 'CONFIRMED',
+    });
+  });
+  return results;
+}
+
+function getData() {
+  var days = [];
+  document.querySelectorAll('[id^="day-"]').forEach(function(card) {
+    var d = card.id.replace('day-','');
+    days.push({
+      label:   dayLabel(d),
+      noAm:    sel('noam-' + d) ? sel('noam-' + d).checked : false,
+      noPm:    sel('nopm-' + d) ? sel('nopm-' + d).checked : false,
+      amTal:   getTalents('am', d),
+      pmTal:   getTalents('pm', d),
+      lunch:   sel('dlunch-' + d) ? sel('dlunch-' + d).value.trim() : '',
+      note:    sel('dnote-' + d) ? sel('dnote-' + d).value.trim() : '',
+    });
+  });
+  return days;
+}
+
+// ── Status helpers ───────────────────────────────────────
+
+var STATUS_BADGE = {
+  ON_HOLD:   { label:'⏸ ON HOLD — Details TBD', style:'background:#fff3cd;color:#856404;border:1px solid #ffc107;' },
+  PENDING:   { label:'⋯ PENDING',               style:'background:#cfe2ff;color:#084298;border:1px solid #9ec5fe;' },
+  CANCELLED: { label:'✕ CANCELLED',             style:'background:#e9ecef;color:#6c757d;border:1px solid #ced4da;' },
+};
+var STATUS_HL = {
+  CONFIRMED: { bg:'#FFFF00', fg:'#1a1a00' },
+  ON_HOLD:   { bg:'#FFA500', fg:'#3d1f00' },
+  PENDING:   { bg:'#b3d4f5', fg:'#0d2d5c' },
+  CANCELLED: { bg:'#e0e0e0', fg:'#888888' },
+};
+
+// ── Email HTML ───────────────────────────────────────────
+
+function talentEmailHTML(t) {
+  var status = t.status || 'CONFIRMED';
+  var cancelled = status === 'CANCELLED';
+  var hl = STATUS_HL[status];
+  var strike = cancelled ? 'text-decoration:line-through;' : '';
+  var gray = cancelled ? 'color:#aaa;' : '';
+  var html = '';
+
+  if (STATUS_BADGE[status]) {
+    html += '<p><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;' + STATUS_BADGE[status].style + '">' + STATUS_BADGE[status].label + '</span></p>';
+  }
+
+  html += '<p><span style="background-color:' + hl.bg + ';color:' + hl.fg + ';font-weight:bold;' + strike + '">Talent: ' + (t.name || 'TBD') + '</span></p>';
+
+  if (t.roles) {
+    html += '<p style="' + gray + strike + '">Role(s): ' + t.roles + '</p>';
+  } else if (!cancelled) {
+    html += '<p style="color:#aaa;font-style:italic;">Role(s): TBD</p>';
+  }
+
+  if (t.crew) {
+    html += '<p style="' + gray + strike + '">Crew Arrival: <strong>' + fmt(t.crew) + '</strong></p>';
+  }
+
+  if (t.arrival) {
+    html += '<p style="' + gray + strike + '">Talent Arrival: <strong>' + fmt(t.arrival) + '</strong></p>';
+  } else if (!cancelled) {
+    html += '<p style="color:#aaa;font-style:italic;">Talent Arrival: TBD</p>';
+  }
+
+  if (t.recStart) {
+    var recLine = 'Recording: <strong>' + fmt(t.recStart) + (t.recEnd ? ' - ' + fmt(t.recEnd) : '') + '</strong>';
+    html += '<p style="' + gray + strike + '">' + recLine + '</p>';
+  } else if (!cancelled) {
+    html += '<p style="color:#aaa;font-style:italic;">Recording: TBD</p>';
+  }
+
+  if (!cancelled) {
+    if (t.isNew) html += '<p><em>*New talent — onboarding video at arrival</em></p>';
+    if (!t.noInt && t.exit) {
+      html += '<p><span style="background-color:#e8d5f5;color:#4a0080;font-weight:bold;">Exit Interview: ' + fmt(t.exit) + '</span></p>';
+    } else if (t.noInt) {
+      html += '<p>*No Interview</p>';
+    }
+  }
+
+  if (t.note) {
+    html += '<p style="' + gray + strike + '"><strong style="color:#1a3fa8;">Note:</strong> <span style="color:#1a3fa8;font-weight:bold;">' + t.note + '</span></p>';
+  }
+
+  return html;
+}
+
+function getTimestamp() {
+  var now = new Date();
+  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var day = now.getDate();
+  var suffix = (day===1||day===21||day===31)?'st':(day===2||day===22)?'nd':(day===3||day===23)?'rd':'th';
+  var h = now.getHours(), m = now.getMinutes();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  var hr = h % 12 || 12;
+  var min = String(m).padStart(2,'0');
+  return 'Updated: ' + days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + day + suffix + ', ' + now.getFullYear() + ' at ' + hr + ':' + min + ' ' + ampm;
+}
+
+function buildEmail(days) {
+  var html = '<p style="font-size:12px;color:#555;font-style:italic;">' + getTimestamp() + '</p><p>&nbsp;</p>';
+  days.forEach(function(day) {
+    html += '<p><span style="background-color:#00B0F0;font-weight:bold;color:#000;">&nbsp;' + day.label + '&nbsp;</span></p><p>&nbsp;</p>';
+
+    var amEmpty = day.noAm || day.amTal.length === 0;
+    if (amEmpty) {
+      html += '<p>No morning session</p><p>&nbsp;</p>';
+    } else {
+      day.amTal.forEach(function(t) { html += talentEmailHTML(t) + '<p>&nbsp;</p>'; });
+    }
+
+    if (day.lunch) {
+      html += '<p><strong>Lunch/Dinner:</strong> ' + day.lunch + '</p><p>&nbsp;</p>';
+    }
+
+    var pmEmpty = day.noPm || day.pmTal.length === 0;
+    if (pmEmpty) {
+      html += '<p>*No afternoon session</p><p>&nbsp;</p>';
+    } else {
+      day.pmTal.forEach(function(t) { html += talentEmailHTML(t) + '<p>&nbsp;</p>'; });
+    }
+
+    if (day.note) html += '<p><em>' + day.note + '</em></p><p>&nbsp;</p>';
+    html += '<p>&nbsp;</p>';
+  });
+  return html;
+}
+
+// ── Plain Text ───────────────────────────────────────────
+
+function talentPlain(t) {
+  var status = t.status || 'CONFIRMED';
+  var cancelled = status === 'CANCELLED';
+  var txt = '';
+  if (STATUS_BADGE[status]) txt += '[' + STATUS_BADGE[status].label + ']\n';
+  txt += 'Talent: ' + (t.name || 'TBD') + '\n';
+  if (t.roles) txt += 'Role(s): ' + t.roles + '\n';
+  if (t.crew) txt += 'Crew Arrival: ' + fmt(t.crew) + '\n';
+  if (t.arrival) txt += 'Talent Arrival: ' + fmt(t.arrival) + '\n';
+  if (t.recStart) txt += 'Recording: ' + fmt(t.recStart) + (t.recEnd ? ' - ' + fmt(t.recEnd) : '') + '\n';
+  if (!cancelled) {
+    if (t.isNew) txt += '*New talent - onboarding video at arrival\n';
+    if (!t.noInt && t.exit) txt += 'Exit Interview: ' + fmt(t.exit) + '\n';
+    else if (t.noInt) txt += '*No Interview\n';
+  }
+  if (t.note) txt += 'Note: ' + t.note + '\n';
+  return txt;
+}
+
+function buildPlain(days) {
+  var txt = getTimestamp() + '\n\n';
+  days.forEach(function(day) {
+    txt += '== ' + day.label.toUpperCase() + ' ==\n\n';
+    if (day.noAm || day.amTal.length === 0) {
+      txt += 'No morning session\n\n';
+    } else {
+      day.amTal.forEach(function(t) { txt += talentPlain(t) + '\n'; });
+    }
+    if (day.lunch) txt += 'Lunch/Dinner: ' + day.lunch + '\n\n';
+    if (day.noPm || day.pmTal.length === 0) {
+      txt += '*No afternoon session\n\n';
+    } else {
+      day.pmTal.forEach(function(t) { txt += talentPlain(t) + '\n'; });
+    }
+    if (day.note) txt += day.note + '\n\n';
+    txt += '\n';
+  });
+  return txt.trim();
+}
+
+// ── Canvas Image ─────────────────────────────────────────
+
+function buildImage(days) {
+  var canvas = sel('sched-canvas');
+  var ctx = canvas.getContext('2d');
+  var W = 1080, PAD = 48, LH = 34, F = 'Arial';
+  var ROYAL = '#1a3fa8';
+
+  function measureH() {
+    var y = PAD + 10 + 30; // PAD + timestamp line
+    days.forEach(function(day) {
+      y += 50 + 18; // day header
+      var slots = [
+        { noS: day.noAm, tals: day.amTal },
+        { noS: day.noPm, tals: day.pmTal }
+      ];
+      slots.forEach(function(slot) {
+        if (slot.noS || slot.tals.length === 0) { y += LH + 10; return; }
+        slot.tals.forEach(function(t) {
+          var status = t.status || 'CONFIRMED';
+          var cancelled = status === 'CANCELLED';
+          if (status !== 'CONFIRMED') y += 32;
+          y += 38; // name highlight
+          y += LH; // roles
+          if (t.crew) y += LH;
+          if (t.arrival) y += LH;
+          if (t.recStart) y += LH;
+          if (!cancelled) {
+            if (t.isNew) y += LH;
+            if (!t.noInt && t.exit) y += LH;
+            else if (t.noInt) y += LH;
+          }
+          if (t.note) y += LH;
+          y += 24;
+        });
+      });
+      if (day.lunch) y += LH + 10;
+      if (day.note) y += LH;
+      y += 28;
+    });
+    return y + PAD;
+  }
+
+  var H = measureH();
+  canvas.width = W;
+  canvas.height = H;
+  canvas.style.display = 'block';
+
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, W, H);
+
+  var y = PAD + 10;
+
+  // Timestamp
+  ctx.font = 'italic 16px ' + F;
+  ctx.fillStyle = '#555';
+  ctx.fillText(getTimestamp(), PAD, y + 16);
+  y += 30;
+
+  days.forEach(function(day) {
+    // Day header
+    ctx.fillStyle = '#1a6fd4';
+    ctx.beginPath(); ctx.roundRect(PAD, y, W - PAD*2, 48, 6); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 22px ' + F;
+    ctx.fillText(day.label, PAD + 18, y + 32);
+    y += 48 + 18;
+
+    // Morning session
+    if (day.noAm || day.amTal.length === 0) {
+      ctx.fillStyle = '#000'; ctx.font = '18px ' + F;
+      ctx.fillText('No morning session', PAD, y + 20);
+      y += LH + 10;
+    } else {
+      day.amTal.forEach(function(t) { drawTalent(t); });
+    }
+
+    // Lunch/Dinner between sessions
+    if (day.lunch) {
+      ctx.font = 'bold 19px ' + F; ctx.fillStyle = '#000';
+      ctx.fillText('Lunch/Dinner: ' + day.lunch, PAD, y + 22);
+      y += LH + 10;
+    }
+
+    // Afternoon session
+    if (day.noPm || day.pmTal.length === 0) {
+      ctx.fillStyle = '#000'; ctx.font = '18px ' + F;
+      ctx.fillText('*No afternoon session', PAD, y + 20);
+      y += LH + 10;
+    } else {
+      day.pmTal.forEach(function(t) { drawTalent(t); });
+    }
+
+    function drawTalent(t) {
+        var status = t.status || 'CONFIRMED';
+        var cancelled = status === 'CANCELLED';
+        var hl = STATUS_HL[status];
+
+        // Badge
+        if (status !== 'CONFIRMED') {
+          var bColors = { ON_HOLD:'#ffc107', PENDING:'#9ec5fe', CANCELLED:'#ced4da' };
+          var bLabels = { ON_HOLD:'⏸ ON HOLD — Details TBD', PENDING:'⋯ PENDING', CANCELLED:'✕ CANCELLED' };
+          ctx.font = 'bold 14px ' + F;
+          var bw = ctx.measureText(bLabels[status]).width + 24;
+          ctx.fillStyle = bColors[status];
+          ctx.beginPath(); ctx.roundRect(PAD, y, bw, 26, 13); ctx.fill();
+          ctx.fillStyle = '#111'; ctx.fillText(bLabels[status], PAD + 12, y + 18);
+          y += 32;
+        }
+
+        // Talent name highlight
+        ctx.font = 'bold 20px ' + F;
+        var nameText = 'Talent: ' + (t.name || 'TBD');
+        var nw = ctx.measureText(nameText).width + 24;
+        ctx.fillStyle = hl.bg;
+        ctx.beginPath(); ctx.roundRect(PAD, y, nw, 34, 4); ctx.fill();
+        ctx.fillStyle = hl.fg; ctx.fillText(nameText, PAD + 12, y + 24);
+        if (cancelled) {
+          ctx.beginPath(); ctx.moveTo(PAD+12, y+16); ctx.lineTo(PAD+12+nw-12, y+16);
+          ctx.strokeStyle = hl.fg; ctx.lineWidth = 2; ctx.stroke();
+        }
+        y += 38;
+
+        var bc = cancelled ? '#bbb' : '#000';
+
+        function drawLine(text, color, bold) {
+          ctx.font = (bold ? 'bold ' : '') + '19px ' + F;
+          ctx.fillStyle = color || bc;
+          ctx.fillText(text, PAD, y + 22);
+          if (cancelled) {
+            var tw = ctx.measureText(text).width;
+            ctx.beginPath(); ctx.moveTo(PAD, y+12); ctx.lineTo(PAD+tw, y+12);
+            ctx.strokeStyle = '#bbb'; ctx.lineWidth = 1.5; ctx.stroke();
+          }
+          y += LH;
+        }
+
+        if (t.roles) drawLine('Role(s): ' + t.roles, bc, false);
+        else if (!cancelled) drawLine('Role(s): TBD', '#aaa', false);
+
+        if (t.crew) drawLine('Crew Arrival: ' + fmt(t.crew), bc, false);
+        if (t.arrival) drawLine('Talent Arrival: ' + fmt(t.arrival), bc, false);
+        if (t.recStart) drawLine('Recording: ' + fmt(t.recStart) + (t.recEnd ? ' - ' + fmt(t.recEnd) : ''), bc, false);
+
+        if (!cancelled) {
+          if (t.isNew) drawLine('*New talent — onboarding video at arrival', '#000', false);
+          if (!t.noInt && t.exit) {
+            var exitText = 'Exit Interview: ' + fmt(t.exit);
+            ctx.font = 'bold 19px ' + F;
+            var ew = ctx.measureText(exitText).width + 20;
+            ctx.fillStyle = '#e8d5f5';
+            ctx.beginPath(); ctx.roundRect(PAD, y, ew, 28, 3); ctx.fill();
+            ctx.fillStyle = '#4a0080';
+            ctx.fillText(exitText, PAD + 10, y + 20);
+            y += LH;
+          } else if (t.noInt) drawLine('*No Interview', '#000', false);
+        }
+
+        if (t.note) {
+          ctx.font = 'bold 19px ' + F;
+          ctx.fillStyle = ROYAL;
+          var noteLabel = 'Note: ';
+          var labelW = ctx.measureText(noteLabel).width;
+          ctx.fillText(noteLabel, PAD, y + 22);
+          ctx.fillText(t.note, PAD + labelW, y + 22);
+          y += LH;
+        }
+
+        y += 24;
+    }
+
+    if (day.note) {
+      ctx.font = 'bold 19px ' + F; ctx.fillStyle = ROYAL;
+      ctx.fillText('Note: ' + day.note, PAD, y + 22); y += LH;
+    }
+    y += 28;
+  });
+}
+
+// ── Actions ──────────────────────────────────────────────
+
+function generate() {
+  var days = getData();
+  if (days.length === 0) { alert('Add at least one day first.'); return; }
+  sel('email-preview').innerHTML = buildEmail(days);
+  sel('plain-out').value = buildPlain(days);
+  buildImage(days);
+  sel('out-area').style.display = 'block';
+  sel('out-area').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.out-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.out-panel').forEach(function(p){ p.classList.remove('active'); });
+  btn.classList.add('active');
+  sel('panel-' + name).classList.add('active');
+}
+
+function copyEmail() {
+  var el = sel('email-preview');
+  var r = document.createRange(); r.selectNodeContents(el);
+  var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  document.execCommand('copy'); s.removeAllRanges();
+  showToast('toast-email');
+}
+
+function copyPlain() {
+  sel('plain-out').select();
+  document.execCommand('copy');
+  showToast('toast-plain');
+}
+
+function downloadImg() {
+  var canvas = sel('sched-canvas');
+  var a = document.createElement('a');
+  a.download = 'viva-schedule.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
+function downloadEml() {
+  var days = getData();
+  if (days.length === 0) { alert('Generate the schedule first.'); return; }
+  var subject = sel('eml-subject') ? sel('eml-subject').value.trim() : '';
+  if (!subject) subject = 'VIVA Schedule';
+  var bodyHTML = buildEmail(days);
+
+  var fullHTML =
+    '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<style>' +
+    'body { font-family: Arial, sans-serif; font-size: 14px; line-height: 1.8; color: #000; margin: 20px; }' +
+    'p { margin: 0 0 4px 0; }' +
+    '</style></head><body>' +
+    bodyHTML +
+    '</body></html>';
+
+  var boundary = 'boundary_' + Date.now();
+
+  var eml =
+    'MIME-Version: 1.0\r\n' +
+    'Content-Type: multipart/alternative; boundary="' + boundary + '"\r\n' +
+    'Subject: ' + subject + '\r\n' +
+    'X-Unsent: 1\r\n' +
+    '\r\n' +
+    '--' + boundary + '\r\n' +
+    'Content-Type: text/plain; charset=UTF-8\r\n' +
+    'Content-Transfer-Encoding: 7bit\r\n' +
+    '\r\n' +
+    buildPlain(days) + '\r\n' +
+    '\r\n' +
+    '--' + boundary + '\r\n' +
+    'Content-Type: text/html; charset=UTF-8\r\n' +
+    'Content-Transfer-Encoding: 7bit\r\n' +
+    '\r\n' +
+    fullHTML + '\r\n' +
+    '\r\n' +
+    '--' + boundary + '--\r\n';
+
+  var blob = new Blob([eml], { type: 'message/rfc822' });
+  var a = document.createElement('a');
+  a.download = 'viva-schedule.eml';
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function saveSchedule() {
+  var days = getData();
+  // Also capture date field values (not in getData output)
+  var raw = [];
+  document.querySelectorAll('[id^="day-"]').forEach(function(card) {
+    var d = card.id.replace('day-','');
+    raw.push({
+      date:   sel('date-' + d) ? sel('date-' + d).value : '',
+      dlabel: sel('dlabel-' + d) ? sel('dlabel-' + d).value : '',
+      noAm:   sel('noam-' + d) ? sel('noam-' + d).checked : false,
+      noPm:   sel('nopm-' + d) ? sel('nopm-' + d).checked : false,
+      note:   sel('dnote-' + d) ? sel('dnote-' + d).value : '',
+      lunch:  sel('dlunch-' + d) ? sel('dlunch-' + d).value : '',
+      amTal:  getTalents('am', d),
+      pmTal:  getTalents('pm', d),
+    });
+  });
+  var json = JSON.stringify({ version: 1, days: raw }, null, 2);
+  var blob = new Blob([json], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.download = 'viva-schedule-' + new Date().toISOString().slice(0,10) + '.json';
+  a.href = URL.createObjectURL(blob);
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function loadSchedule(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (!data.days) throw new Error('Invalid file');
+      // Clear existing
+      sel('days-wrap').innerHTML = '';
+      sel('out-area').style.display = 'none';
+      dayIdx = 0; talIdx = 0;
+      // Rebuild each day
+      data.days.forEach(function(dayData) {
+        dayIdx++;
+        var d = dayIdx;
+        var wrap = sel('days-wrap');
+        var div = document.createElement('div');
+        div.className = 'card';
+        div.id = 'day-' + d;
+        div.innerHTML =
+          '<div class="card-header">' +
+            '<div class="card-title"><i class="ti ti-calendar" aria-hidden="true"></i> Day ' + d + '</div>' +
+            '<button class="btn btn-red btn-sm" onclick="removeDay(' + d + ')"><i class="ti ti-trash" aria-hidden="true"></i> Remove Day</button>' +
+          '</div>' +
+          '<div class="g2">' +
+            '<div class="fg"><label>Date</label><input type="date" id="date-' + d + '" onchange="autoLabel(' + d + ')" value="' + (dayData.date||'') + '"></div>' +
+            '<div class="fg"><label>Day Label (auto-filled, editable)</label><input type="text" id="dlabel-' + d + '" placeholder="Will fill when you pick a date" value="' + (dayData.dlabel||'').replace(/"/g,'&quot;') + '"></div>' +
+          '</div>' +
+          '<div class="fg"><label>Day Notes</label><textarea id="dnote-' + d + '" style="width:100%;resize:vertical;min-height:44px;" placeholder="e.g. *Crew call 8AM sharp">' + (dayData.note||'') + '</textarea></div>' +
+          '<div class="sep"></div>' +
+          '<div class="slot-header">' +
+            '<span class="slot-tag slot-am">Morning Session</span>' +
+            '<label class="nosession-label"><input type="checkbox" id="noam-' + d + '" onchange="toggleSlot(' + d + ',\'am\')"' + (dayData.noAm?' checked':'') + '> No morning session</label>' +
+          '</div>' +
+          '<div id="am-talents-' + d + '"></div>' +
+          '<button class="btn-add" id="am-addbtn-' + d + '" onclick="addTalent(' + d + ',\'am\')"><i class="ti ti-plus" aria-hidden="true"></i> Add talent to morning session</button>' +
+          '<div class="fg" style="background:#fffbea;border:1px solid #f5c800;border-radius:8px;padding:10px;">' +
+            '<label style="color:#856404;">Lunch / Dinner</label>' +
+            '<input type="text" id="dlunch-' + d + '" placeholder="e.g. 12PM - 1PM, Provided on set, On your own" style="background:#fffbea;" value="' + (dayData.lunch||'').replace(/"/g,'&quot;') + '">' +
+          '</div>' +
+          '<div class="sep"></div>' +
+          '<div class="slot-header">' +
+            '<span class="slot-tag slot-pm">Afternoon Session</span>' +
+            '<label class="nosession-label"><input type="checkbox" id="nopm-' + d + '" onchange="toggleSlot(' + d + ',\'pm\')"' + (dayData.noPm?' checked':'') + '> No afternoon session</label>' +
+          '</div>' +
+          '<div id="pm-talents-' + d + '"></div>' +
+          '<button class="btn-add" id="pm-addbtn-' + d + '" onclick="addTalent(' + d + ',\'pm\')"><i class="ti ti-plus" aria-hidden="true"></i> Add talent to afternoon session</button>';
+        wrap.appendChild(div);
+
+        // Restore talents
+        (dayData.amTal || []).forEach(function(t) { addTalent(d, 'am', t); });
+        (dayData.pmTal || []).forEach(function(t) { addTalent(d, 'pm', t); });
+
+        // Apply toggle visual state
+        if (dayData.noAm) toggleSlot(d, 'am');
+        if (dayData.noPm) toggleSlot(d, 'pm');
+      });
+
+      // Reset file input so same file can be reloaded
+      event.target.value = '';
+      alert('Schedule loaded successfully!');
+    } catch(err) {
+      alert('Could not load file. Make sure it\'s a saved VIVA schedule file.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function showToast(id) {
+  var el = sel(id); el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2000);
+}
+
+function startOver() {
+  if (confirm('Clear everything and start over?')) {
+    sel('days-wrap').innerHTML = '';
+    sel('out-area').style.display = 'none';
+    dayIdx = 0; talIdx = 0;
+    addDay();
+  }
+}
+
+// Init
+addDay();
+</script>
+</body>
+</html>
